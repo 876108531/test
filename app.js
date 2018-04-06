@@ -1,6 +1,6 @@
-const Canvas = require('canvas')
-    , Image = Canvas.Image
-  	, fs = require('fs')
+// const Canvas = require('canvas')
+//     , Image = Canvas.Image
+//   	, fs = require('fs')
 
 bookCanvas({
     realName : '名字名字',
@@ -13,7 +13,10 @@ bookCanvas({
 });
 
 function bookCanvas (config) {
-    const canvas = new Canvas(2480, 3508)
+    const 
+        // canvas = new Canvas(2480, 3508)
+        canvas=document.getElementById("canvas")
+        // todo test
         , ctx = canvas.getContext('2d')
         , img = new Image()
     
@@ -32,6 +35,7 @@ function bookCanvas (config) {
         , lineHeight = 144
         , leftWidth = 215
         , cWidth = 2045
+        , cTop = 1290
         , timeTop = 2060
         , font = fontSize + 'px PingFangSC-Regular'
         , fixFont = fixFontSize + 'px SimSun'
@@ -59,8 +63,6 @@ function bookCanvas (config) {
     img.onload = () => {
         ctx.drawImage(img, 0, 0);
         
-        ctx.fillText(realName, leftWidth+nameWidth/2, 1290);
-        _fillLine(leftWidth,leftWidth+nameWidth,1290+fontSize)
         ctx.fillText(realName, 1060, 2426);
         ctx.fillText(nianrankName, 1060, 2574);
         ctx.fillText(startTimeArr[0], leftWidth+133, timeTop);
@@ -69,86 +71,36 @@ function bookCanvas (config) {
         ctx.fillText(endTimeArr[0], leftWidth+997, timeTop);
         ctx.fillText(endTimeArr[1], leftWidth+1259, timeTop);
         ctx.fillText(endTimeArr[2], leftWidth+1448, timeTop);
-        
-        let Text0Lines = _breakLinesForCanvas({text: '为我司旗下', width: cWidth, fistLineWidth: cWidth-nameWidth, font: fixFont})
-            , brandLines = _breakLinesForCanvas({text: brands, width: cWidth, fistLineWidth: cWidth-Text0Lines['endWidth']-nameWidth, font})
-            , Text1Lines = _breakLinesForCanvas({text: '品牌在微商渠道的正规经销商，授权编号为', width: cWidth, fistLineWidth: cWidth-brandLines['endWidth'], font: fixFont})
-			, numberLines = _breakLinesForCanvas({text: number, width: cWidth, fistLineWidth: 1163, font})
-            , Text2Lines = _breakLinesForCanvas({text: '，特此授权。', width: cWidth, fistLineWidth: cWidth-numberLines['endWidth'], font: fixFont})
-        
-        console.log(cWidth-brandLines['endWidth'])//950  2048
-    
-        Text0Lines['data'].forEach(function (line, index) {
-            const {width} = ctx.measureText(line)
-            let x = leftWidth;
-            if (index === 0 && nameWidth < cWidth - fixFontSize) {
-                x = leftWidth+nameWidth;
-            }
-            ctx.font = fixFont;
-            ctx.fillText(line, x + width/2, lineHeight * index + 1290 + 40);
-        });
-        
-        brandLines['data'].forEach(function (line, index) {
-            const {width} = ctx.measureText(line)
-			let x = leftWidth;
-            if (index === 0 && Text0Lines['endWidth'] < cWidth - fontSize) {
-                x = leftWidth+nameWidth+Text0Lines['endWidth'];
-                Text0Lines['length'] -= 1;
-            }
-            ctx.font = font;
-            ctx.fillText(line, x + width/2, lineHeight * (index+Text0Lines['length']) + 1290);
-            _fillLine(x,x + width,lineHeight * index + 1372)
-        });
-    
-        // ctx.font = '72px PingFangSC-Medium';
-        Text1Lines['data'].forEach(function (line, index) {
-            const {width} = ctx.measureText(line)
-            console.log('999:'+width)
-			let x = leftWidth;
-            if (index === 0 && brandLines['endWidth'] < cWidth - fontSize) {
-                x = leftWidth+brandLines['endWidth'];
-                brandLines['length'] -= 1;
-            }
-            ctx.font = fixFont;
-            ctx.fillText(line, x + width/2, lineHeight * (index+brandLines['length']) + 1290 + 40);
-        });
-    
-        numberLines['data'].forEach(function (line, index) {
-            const {width} = ctx.measureText(line)
-            let x = leftWidth;
-            if (index === 0 && Text1Lines['endWidth'] < cWidth - fontSize) {
-                x = leftWidth+Text1Lines['endWidth'];
-                Text1Lines['length'] -= 1;
-            }
-            console.log(x);
-            // todo test
-            ctx.font = font;
-            ctx.fillText(line, x + numberWidth/2, lineHeight * (index+brandLines['length']+Text1Lines['length']) + 1290 + 40);
-            _fillLine(x,x + numberWidth,lineHeight * (index+brandLines['length']+Text1Lines['length']) + 1372)
-        });
-    
-        Text2Lines['data'].forEach(function (line, index) {
-            const {width} = ctx.measureText(line)
-            let x = leftWidth;
-            if (index === 0 && numberWidth < cWidth - fontSize) {
-                x = leftWidth+Text1Lines['endWidth']+numberWidth;
-                numberLines['length'] -= 1;
-            }
-            ctx.font = fixFont;
-            ctx.fillText(line, x + width/2, lineHeight * (index+brandLines['length']+Text1Lines['length']+numberLines['length']) + 1290 + 40);
-        });
-        
-        
+
+        _fillText([{text:realName,font:font,line:true}
+            ,{text:"为我司旗下",font:fixFont}
+            ,{text:brands,font:font,line:true}
+            ,{text:'品牌在微商渠道的正规经销商，授权编号为',font:fixFont}
+            ,{text:number,font:font,line:true}
+            ,{text:'，特此授权。',font:fixFont}
+        ])
     }
     img.src = imgUrl;
-    
-    // arr = ["Yufit"," (脂老虎) ","Bulgarian Rose"," (保加利亚玫瑰) ", "Yoryu","（悠语）"] //^[\(,\（].*[\),\）]$
+
+    //^[\(,\（].*[\),\）]$
     function _fillText(arr) {
-        let endWidth = 0
-            , fistLineWidth = cWidth - endWidth
+        let lang = 0
         for (var i = 0; i < arr.length; i++) {
-            let Lines = _breakLinesForCanvas({text: arr[i], width: cWidth, fistLineWidth, font})
-            
+            let font = arr[i]['font']
+                , _fontSize = parseInt(font)
+                , Lines = _breakLinesForCanvas({text: arr[i]['text'], width: cWidth, fistLineWidth: cWidth - lang%cWidth, font})
+            for (var j = 0; j < Lines.length; j++) {
+                let LWidth = ctx.measureText(Lines[j]).width
+                if (lang%cWidth + _fontSize >= cWidth) {
+                    lang = cWidth*Math.ceil(lang/cWidth)
+                }
+                ctx.font = font
+                ctx.fillText(Lines[j], leftWidth + lang%cWidth + LWidth/2, cTop + lineHeight*Math.floor(lang/cWidth))
+                if (arr[i]['line']) {
+                    _fillLine(leftWidth + lang%cWidth,leftWidth + lang%cWidth + LWidth,cTop + lineHeight*Math.floor(lang/cWidth) + fontSize/2)
+                }
+                lang += LWidth
+            }
         }
     }
     
@@ -186,10 +138,7 @@ function bookCanvas (config) {
             result.push(text);
         }
         
-        return {
-            data:result,
-            length:result.length,
-            endWidth:ctx.measureText(result[result.length-1]).width};
+        return result
     }
     function __findBreakPoint (text, width) {
         let min = 0;
@@ -212,8 +161,7 @@ function bookCanvas (config) {
         return -1;
     }
     
-    
-    let file = fs.createWriteStream('./img2.jpg')
-    file.write(canvas.toBuffer())
+    // let file = fs.createWriteStream('./img2.jpg')
+    // file.write(canvas.toBuffer())
 	// todo test
 }
