@@ -83,6 +83,12 @@ function bookCanvas (config) {
     img.src = imgUrl;
 
     //^[\(,\（].*[\),\）]$
+    // ([\(,\（]{1,}[\u4e00-\u9fa5]{0,}[\),\）]{0,})|([\(,\（]{0,}[\u4e00-\u9fa5]{0,}[\),\）]{1,})
+    // ((?:[\),\）]{0,})[^\(,\（,\),\）]*(?:[\(,\（]{1,}))|((?:[\),\）]{1,})[^\(,\（,\),\）]*(?:[\(,\（]{0,}))
+    // let s = '  Test (测试文字) TestTest Test (测试文字)  Test（测试文字）  Test (测试文字) Test Test (测试文字)  TestTest（测试文字）'
+    // let regex = "\\/([\(,\（]{1,}[\u4e00-\u9fa5]{0,}[\),\）]{0,})|([\(,\（]{0,}[\u4e00-\u9fa5]{0,}[\),\）]{1,})\\/g"
+    //     , c = s.replace(regex, "$1");
+    // s.indexOf(c);
     function _fillText(arr) {
         let lang = 0
         for (var i = 0; i < arr.length; i++) {
