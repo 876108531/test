@@ -1,64 +1,71 @@
-// const Canvas = require('canvas')
-//     , Image = Canvas.Image
-//   	, fs = require('fs')
+const Canvas = require('canvas')
+    , Image = Canvas.Image
+  	, fs = require('fs')
 
-bookCanvas({
+let buffer = bookCanvas({
     realName : '名字名字',
-    nianrankName : '测试文字',
+    nianrankName : '年度白晶',
     number : '20141113116',
     startTime: '2014-04-04',
     endTime: '2019-09-09',
-    imgUrl: './book.jpg',
-    brands: '  Test (测试文字) TestTest Test (测试文字)  Test（测试文字）  Test (测试文字) Test Test (测试文字)  TestTest（测试文字）',
-});
+    backImgUrl: './img/book.jpg',
+    brands: [{name:'TestTest',desc:'（测试文字）'},{name:'TestTest',desc:'（测试文字）'},{name:'TestTest',desc:'（测试文字）'}],
+}).buffer;
+
+let file = fs.createWriteStream('./img2.jpg')
+file.write(buffer)
+// todo test
 
 function bookCanvas (config) {
     const 
-        // canvas = new Canvas(2480, 3508)
-        canvas=document.getElementById("canvas")
+        canvas = new Canvas(2480, 3508)
+        // canvas=document.getElementById("canvas")
         // todo test
         , ctx = canvas.getContext('2d')
-        , img = new Image()
+        , img = new Image
+        , imgIcon = new Image
     
-    const {
+    const RANK_ICON_MAP = {
+        "年度白晶": './img/white.png',
+        "年度粉晶": './img/pink.png',
+        "年度红晶": './img/red.png',
+        "年度紫晶": './img/purple.png',
+        "年度黑晶": './img/black.png',
+        "年度皇后": './img/gold.png',
+    }
+    
+    let {
     	realName,
 		nianrankName,
 		startTime,
 		number,
 		endTime,
 		brands,
-		imgUrl = './book.jpg',
+        backImgUrl,
     } = config
     
     const fontSize = 80
-        , fixFontSize = 72
+        , sFontSize = 72
         , lineHeight = 144
         , leftWidth = 215
         , cWidth = 2045
         , cTop = 1290
         , timeTop = 2060
         , font = fontSize + 'px PingFangSC-Regular'
-        , fixFont = fixFontSize + 'px SimSun'
+        , sFont = sFontSize + 'px SimSun'
     
     ctx.font = font;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineWidth = 4;
     
-    let startTimeArr = [], endTimeArr = [], nameWidth, numberWidth;
+    let startTimeArr = [], endTimeArr = [];
     if (startTime) {
         startTimeArr = startTime.split('-')
     }
     if (endTime) {
         endTimeArr = endTime.split('-')
     }
-    if (realName) {
-        nameWidth = ctx.measureText("  "+realName+"  ").width
-    }
-    if (number) {
-        numberWidth = ctx.measureText("  "+number+"  ").width
-    }
-    console.log(nameWidth)
 	
     img.onload = () => {
         ctx.drawImage(img, 0, 0);
@@ -71,46 +78,57 @@ function bookCanvas (config) {
         ctx.fillText(endTimeArr[0], leftWidth+997, timeTop);
         ctx.fillText(endTimeArr[1], leftWidth+1259, timeTop);
         ctx.fillText(endTimeArr[2], leftWidth+1448, timeTop);
-
-        _fillText([{text:realName,font:font,line:true}
-            ,{text:"为我司旗下",font:fixFont}
-            ,{text:brands,font:font,line:true}
-            ,{text:'品牌在微商渠道的正规经销商，授权编号为',font:fixFont}
-            ,{text:number,font:font,line:true}
-            ,{text:'，特此授权。',font:fixFont}
-        ])
+        
+        let newbrands = []
+        for (let i = 0; i < brands.length; i++) {
+            newbrands.push({text:' '+brands[i]['name'],font:font,line:true})
+            newbrands.push({text:brands[i]['desc'],font:sFont,line:true})
+        }
+        let txtArr = [
+            {text:realName,font:font,line:true},
+            {text:'为我司旗下',font:sFont}
+        ].concat(newbrands)
+        txtArr.push({text:'品牌在微商渠道的正规经销商，授权编号为',font:sFont})
+        txtArr.push({text:number,font:font,line:true})
+        txtArr.push({text:'，特此授权。',font:sFont})
+        _fillText(txtArr)
+    
+        imgIcon.onload = () => {
+            ctx.drawImage(imgIcon, 1760, 2200);
+        }
     }
-    img.src = imgUrl;
-
-    //^[\(,\（].*[\),\）]$
-    // ([\(,\（]{1,}[\u4e00-\u9fa5]{0,}[\),\）]{0,})|([\(,\（]{0,}[\u4e00-\u9fa5]{0,}[\),\）]{1,})
-    // ((?:[\),\）]{0,})[^\(,\（,\),\）]*(?:[\(,\（]{1,}))|((?:[\),\）]{1,})[^\(,\（,\),\）]*(?:[\(,\（]{0,}))
-    // let s = '  Test (测试文字) TestTest Test (测试文字)  Test（测试文字）  Test (测试文字) Test Test (测试文字)  TestTest（测试文字）'
-    // let regex = "\\/([\(,\（]{1,}[\u4e00-\u9fa5]{0,}[\),\）]{0,})|([\(,\（]{0,}[\u4e00-\u9fa5]{0,}[\),\）]{1,})\\/g"
-    //     , c = s.replace(regex, "$1");
-    // s.indexOf(c);
-    function _fillText(arr) {
+    img.src = backImgUrl;
+    imgIcon.src = getLevelImage(nianrankName);
+    
+    function getLevelImage(key) {
+        if (RANK_ICON_MAP[key]) {
+            return RANK_ICON_MAP[key]
+        }
+        return require('./img/normal.png')
+    }
+    
+    function _fillText(arr) { //授权信息
         let lang = 0
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             let font = arr[i]['font']
                 , _fontSize = parseInt(font)
                 , Lines = _breakLinesForCanvas({text: arr[i]['text'], width: cWidth, fistLineWidth: cWidth - lang%cWidth, font})
-            for (var j = 0; j < Lines.length; j++) {
+            for (let j = 0; j < Lines.length; j++) {
                 let LWidth = ctx.measureText(Lines[j]).width
                 if (lang%cWidth + _fontSize >= cWidth) {
                     lang = cWidth*Math.ceil(lang/cWidth)
                 }
-                ctx.font = font
-                ctx.fillText(Lines[j], leftWidth + lang%cWidth + LWidth/2, cTop + lineHeight*Math.floor(lang/cWidth))
                 if (arr[i]['line']) {
                     _fillLine(leftWidth + lang%cWidth,leftWidth + lang%cWidth + LWidth,cTop + lineHeight*Math.floor(lang/cWidth) + fontSize/2)
                 }
+                ctx.font = font
+                ctx.fillText(Lines[j], leftWidth + lang%cWidth + LWidth/2, cTop + lineHeight*Math.floor(lang/cWidth))
                 lang += LWidth
             }
         }
     }
     
-    function _fillLine(startPoint,endPoint,y) {
+    function _fillLine(startPoint,endPoint,y) { //下划线
         ctx.beginPath();
         ctx.moveTo(startPoint, y);
         ctx.lineTo(endPoint, y);
@@ -167,7 +185,8 @@ function bookCanvas (config) {
         return -1;
     }
     
-    // let file = fs.createWriteStream('./img2.jpg')
-    // file.write(canvas.toBuffer())
-	// todo test
+    return {
+        buffer : canvas.toBuffer(),
+        dataURL : canvas.toDataURL()
+    }
 }
